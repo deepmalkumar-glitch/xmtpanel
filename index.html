@@ -63,11 +63,76 @@ function demoBuy(price,name){
 </script>
 
 <div class="footer">© XMTPANEL • DARK BLUE PORTAL CONCEPT</div></main>
-<script>
-const $=id=>document.getElementById(id);
-function showTab(tab){$('loginForm').classList.toggle('hidden',tab!=='login');$('registerForm').classList.toggle('hidden',tab!=='register');$('loginTab').classList.toggle('active',tab==='login');$('registerTab').classList.toggle('active',tab==='register');$('message').classList.add('hidden')}
-function msg(t){$('message').textContent=t;$('message').classList.remove('hidden')}
-$('registerForm').addEventListener('submit',e=>{e.preventDefault();msg('Demo only: registration UI is working, but no account has been created. Connect a secure backend to activate real registration.')});
-$('loginForm').addEventListener('submit',e=>{e.preventDefault();msg('Demo only: real login is not connected yet. Add backend authentication before using this with customers.')});
-function logout(){$('dashboard').style.display='none';$('auth').style.display='grid';showTab('login')}
-</script></body></html>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB_9yVlbkwcvOBT6uup890WYC0iZ3lXYSQ",
+    authDomain: "xmtpanel.firebaseapp.com",
+    projectId: "xmtpanel",
+    storageBucket: "xmtpanel.firebasestorage.app",
+    messagingSenderId: "790961544637",
+    appId: "1:790961544637:web:2f44cf87499b0accb886d4",
+    measurementId: "G-M9S954LH54"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const loginForm = document.getElementById("loginForm");
+  const registerForm = document.getElementById("registerForm");
+  const authSection = document.getElementById("auth");
+  const dashboard = document.getElementById("dashboard");
+  const message = document.getElementById("message");
+  const welcome = document.getElementById("welcome");
+
+  function showMessage(text) {
+    message.textContent = text;
+    message.classList.remove("hidden");
+  }
+
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("loginId").value.trim();
+    const password = document.getElementById("loginPass").value;
+
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+
+      authSection.style.display = "none";
+      dashboard.style.display = "block";
+      welcome.textContent = `Welcome, ${result.user.email}`;
+    } catch (error) {
+      showMessage("Login failed: " + error.message);
+    }
+  });
+
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("regEmail").value.trim();
+    const password = document.getElementById("regPass").value;
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+
+      showMessage("Account created successfully. You can now log in.");
+      registerForm.reset();
+    } catch (error) {
+      showMessage("Registration failed: " + error.message);
+    }
+  });
+
+  window.logout = async function () {
+    await signOut(auth);
+    dashboard.style.display = "none";
+    authSection.style.display = "grid";
+  };
+</script>
